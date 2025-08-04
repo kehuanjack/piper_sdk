@@ -289,6 +289,13 @@ class C_PiperParserV2(C_PiperParserBase):
             msg.arm_gripper_teaching_param_feedback.max_range_config = self.ConvertToNegative_8bit(self.ConvertBytesToInt(can_data,1,2),False)
             # (基于V1.5-8版本后)
             msg.arm_gripper_teaching_param_feedback.teaching_friction = self.ConvertToNegative_8bit(self.ConvertBytesToInt(can_data,2,3),False)
+        elif(can_id == CanIDPiper.ARM_SEQ.value):
+            msg.type_ = ArmMessageMapping.get_mapping(can_id=can_id)
+            msg.time_stamp = can_time_now
+            msg.arm_seq.seq = self.ConvertToNegative_16bit(self.ConvertBytesToInt(can_data,0,2),False)
+            msg.arm_seq.seq1 = self.ConvertToNegative_16bit(self.ConvertBytesToInt(can_data,2,4),False)
+            msg.arm_seq.seq2 = self.ConvertToNegative_16bit(self.ConvertBytesToInt(can_data,4,6),False)
+            msg.arm_seq.seq3 = self.ConvertToNegative_16bit(self.ConvertBytesToInt(can_data,6,8),False)
         else:
             ret = False
         return ret

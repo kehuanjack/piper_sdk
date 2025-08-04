@@ -16,6 +16,7 @@ class ArmMsgType(Enum):
     '''
     # feedback
     PiperMsgUnkonwn = 0x00             #未知类型
+    PiperMsgSeq = auto()
     PiperMsgStatusFeedback = auto()    #机械臂状态消息反馈
     PiperMsgEndPoseFeedback_1 = auto() #机械臂末端位姿反馈1
     PiperMsgEndPoseFeedback_2 = auto() #机械臂末端位姿反馈2

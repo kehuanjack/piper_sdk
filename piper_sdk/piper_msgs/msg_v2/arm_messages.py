@@ -11,6 +11,7 @@ from typing import (
     Optional,
 )
 from .arm_msg_type import ArmMsgType
+from .feedback.arm_feedback_seq import ArmMsgFeedbackSeq
 from .feedback.arm_feedback_end_pose import ArmMsgFeedBackEndPose
 from .feedback.arm_feedback_joint_states import ArmMsgFeedBackJointStates
 from .feedback.arm_feedback_status import ArmMsgFeedbackStatus
@@ -61,6 +62,7 @@ class PiperMessage:
                 #  反馈
                  type_: 'ArmMsgType' = None,
                  time_stamp: float = 0.0,
+                 arm_seq: 'ArmMsgFeedbackSeq' = None,
                  arm_status_msgs: 'ArmMsgFeedbackStatus' = None,
                  arm_joint_feedback: 'ArmMsgFeedBackJointStates' = None,
                  gripper_feedback: 'ArmMsgFeedBackGripper' = None,
@@ -99,6 +101,7 @@ class PiperMessage:
         self.type_ = type_
         # 时间戳
         self.time_stamp = time_stamp
+        self.arm_seq = arm_seq if arm_seq else ArmMsgFeedbackSeq()
         # 初始化机械臂状态消息
         self.arm_status_msgs = arm_status_msgs if arm_status_msgs else ArmMsgFeedbackStatus()
         # 初始化机械臂关节反馈

@@ -329,6 +329,22 @@ class C_PiperInterface_V2():
             return (f"time stamp:{self.time_stamp}\n"
                     f"{self.all_motor_angle_limit_max_spd}\n")
     
+    class ArmSeq():
+        '''
+        机械臂发送控制指令0x151的消息接收,由主臂发送
+        '''
+        '''
+        The control command message 0x151 is sent by the main arm for reception
+        '''
+        def __init__(self):
+            self.time_stamp: float=0
+            self.Hz: float = 0
+            self.seq=ArmMsgFeedbackSeq()
+        def __str__(self):
+            return (f"time stamp:{self.time_stamp}\n"
+                    f"Hz:{self.Hz}\n"
+                    f"Seq:{self.seq}")
+    
     _instances = {}  # 存储不同参数的实例
     _lock = threading.Lock()
 
@@ -431,6 +447,7 @@ class C_PiperInterface_V2():
         self.__q_can_fps = Queue(maxsize=5)
         self.__is_ok_mtx = threading.Lock()
         self.__is_ok = True
+        self.__fps_counter.add_variable("ArmSeq")
         self.__fps_counter.add_variable("ArmStatus")
         self.__fps_counter.add_variable("ArmEndPose_XY")
         self.__fps_counter.add_variable("ArmEndPose_ZRX")
@@ -463,6 +480,7 @@ class C_PiperInterface_V2():
         # 机械臂控制消息正解，包含每个关节的正解
         self.__piper_ctrl_fk_mtx = threading.Lock()
         self.__link_ctrl_fk = [[0.0] * 6 for _ in range(6)]
+        self.seq = self.ArmSeq()
         # 固件版本
         self.__firmware_data_mtx = threading.Lock()
         self.__firmware_data = bytearray()
@@ -723,6 +741,7 @@ class C_PiperInterface_V2():
         receive_flag = self.__parser.DecodeMessage(rx_message, msg)
         if(receive_flag):
             ## self.__fps_counter.increment("CanMonitor")
+            self.__UpdateArmSeq(msg)
             self.__UpdateArmStatus(msg)
             self.__UpdateArmEndPoseState(msg)
             self.__UpdateArmJointState(msg)
@@ -787,6 +806,11 @@ class C_PiperInterface_V2():
         Get the frame rate of the robotic arm CAN module
         '''
         return self.__fps_counter.get_fps("CanMonitor")
+    
+    def GetArmSeq(self):
+        self.seq.Hz = self.__fps_counter.get_fps('ArmSeq')
+        # self.seq.Hz = self.__fps_counter.get_real_time_fps('ArmSeq')
+        return self.seq
     
     def GetArmStatus(self):
         '''获取机械臂状态,0x2A1,详见 ArmMsgFeedbackStatus
@@ -1295,6 +1319,16 @@ class C_PiperInterface_V2():
             g_max = round(g_max *1000 * 1000)
             return max(g_min, min(gripper_val, g_max))
         else: return gripper_val
+
+    def __UpdateArmSeq(self, msg:PiperMessage):
+        if(msg.type_ == ArmMsgType.PiperMsgSeq):
+            self.__fps_counter.increment("ArmSeq")
+            self.seq.time_stamp = msg.time_stamp
+            self.seq.seq.seq = msg.arm_seq.seq
+            self.seq.seq.seq1 = msg.arm_seq.seq1
+            self.seq.seq.seq2 = msg.arm_seq.seq2
+            self.seq.seq.seq3 = msg.arm_seq.seq3
+        return self.seq
 
     def __UpdateArmStatus(self, msg:PiperMessage):
         '''更新机械臂状态
@@ -2455,7 +2489,7 @@ class C_PiperInterface_V2():
                     gripper_angle: int = 0, 
                     gripper_effort: int = 0, 
                     gripper_code: Literal[0x00, 0x01, 0x02, 0x03] = 0, 
-                    set_zero: Literal[0x00, 0xAE] = 0):
+                    set_zero: Literal[0x00, 0xAE, 0x7F] = 0):
         '''
         夹爪控制
         
@@ -2497,6 +2531,18 @@ class C_PiperInterface_V2():
         msg = PiperMessage(type_=ArmMsgType.PiperMsgGripperCtrl, arm_gripper_ctrl=gripper_ctrl)
         self.__parser.EncodeMessage(msg, tx_can)
         feedback = self.__arm_can.SendCanMessage(tx_can.arbitration_id, tx_can.data)
+        if feedback is not self.__arm_can.CAN_STATUS.SEND_MESSAGE_SUCCESS:
+            self.logger.error("GripperCtrl send failed: SendCanMessage(%s)", feedback)
+    
+    def GripperTest(self,
+                    gripper_angle: int = 0):
+        '''延迟测试专用，反馈101指令'''
+        tx_can = Message()
+        gripper_angle = self.__CalGripperSDKLimit(gripper_angle)
+        gripper_ctrl = ArmMsgGripperCtrl(gripper_angle, 0, 0, 0)
+        msg = PiperMessage(type_=ArmMsgType.PiperMsgGripperCtrl, arm_gripper_ctrl=gripper_ctrl)
+        self.__parser.EncodeMessage(msg, tx_can)
+        feedback = self.__arm_can.SendCanMessage(0x101, tx_can.data)
         if feedback is not self.__arm_can.CAN_STATUS.SEND_MESSAGE_SUCCESS:
             self.logger.error("GripperCtrl send failed: SendCanMessage(%s)", feedback)
     

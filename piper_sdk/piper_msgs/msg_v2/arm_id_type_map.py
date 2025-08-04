@@ -21,6 +21,7 @@ class ArmMessageMapping:
     # 初始化映射字典
     id_to_type_mapping = {
         # 反馈,feedback
+        CanIDPiper.ARM_SEQ.value: ArmMsgType.PiperMsgSeq,
         CanIDPiper.ARM_STATUS_FEEDBACK.value: ArmMsgType.PiperMsgStatusFeedback,
         CanIDPiper.ARM_END_POSE_FEEDBACK_1.value: ArmMsgType.PiperMsgEndPoseFeedback_1,
         CanIDPiper.ARM_END_POSE_FEEDBACK_2.value: ArmMsgType.PiperMsgEndPoseFeedback_2,

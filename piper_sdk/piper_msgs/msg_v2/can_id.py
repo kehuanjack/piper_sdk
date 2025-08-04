@@ -14,6 +14,7 @@ class CanIDPiper(Enum):
     
     piper's can_ids
     '''
+    ARM_SEQ = 0x001
     # 主动反馈指令，可设置整体偏移为 0x2B1~0x2B8或 0x2C1~0x2C8，详见指令0x470
     ARM_STATUS_FEEDBACK = 0x2A1         #机械臂状态反馈ID
     ARM_END_POSE_FEEDBACK_1 = 0x2A2     #机械臂末端姿态反馈

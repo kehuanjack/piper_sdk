@@ -7,6 +7,7 @@ from .can_id import CanIDPiper
 from .arm_msg_type import ArmMsgType
 from .arm_id_type_map import ArmMessageMapping
 # 导入 feedback 子模块的类
+from .feedback.arm_feedback_seq import ArmMsgFeedbackSeq
 from .feedback.arm_feedback_crash_protection_rating import ArmMsgFeedbackCrashProtectionRating
 from .feedback.arm_feedback_end_pose import ArmMsgFeedBackEndPose
 from .feedback.arm_feedback_current_motor_angle_limit_max_spd import ArmMsgFeedbackCurrentMotorAngleLimitMaxSpd, ArmMsgFeedbackAllCurrentMotorAngleLimitMaxSpd
@@ -50,6 +51,7 @@ __all__ = [
     # 反馈
     'PiperMessage',
     'CanIDPiper',
+    'ArmMsgFeedbackSeq',
     'ArmMsgFeedBackEndPose',
     'ArmMsgFeedBackJointStates',
     'ArmMsgType',
